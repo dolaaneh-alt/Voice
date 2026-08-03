@@ -1,0 +1,193 @@
+import { VoiceOption, ToneType, SpeedPreset } from '../types';
+
+export const VOICE_OPTIONS: VoiceOption[] = [
+  {
+    id: 'Kore',
+    name: 'Kore',
+    persianName: 'کوره (زن - آرام و ملایم)',
+    gender: 'زن',
+    character: 'گرم، آرام و باوقار',
+    toneDescription: 'مناسب برای کتاب‌های صوتی، پادکست، آموزش و متون رسمی',
+    sampleText: 'سلام! به استودیوی هوشمند تبدیل متن به گفتار خوش آمدید.'
+  },
+  {
+    id: 'Puck',
+    name: 'Puck',
+    persianName: 'پاک (مرد - صمیمی و پرانرژی)',
+    gender: 'مرد',
+    character: 'صمیمی، شاداب و جوان',
+    toneDescription: 'عالی برای تبلیغات، تیزرهای ویدیویی، محتوای اینستاگرام و یوتیوب',
+    sampleText: 'سلام رفقا! آماده‌اید یک وویس فوق‌العاده با هم بسازیم؟'
+  },
+  {
+    id: 'Charon',
+    name: 'Charon',
+    persianName: 'کارون (مرد - قاطع و جدی)',
+    gender: 'مرد',
+    character: 'عمیق، جدی و با طنین بالا',
+    toneDescription: 'ایده‌آل برای گویندگی اخبار، تیزرهای سینمایی و متون مستند',
+    sampleText: 'گزارش ویژه: پیشرفت‌های اخیر در زمینه هوش مصنوعی مولد.'
+  },
+  {
+    id: 'Fenrir',
+    name: 'Fenrir',
+    persianName: 'فنریر (مرد - پرقدرت و هیجانی)',
+    gender: 'مرد',
+    character: 'قوی، حماسی و با صلابت',
+    toneDescription: 'مناسب برای داستان‌های حماسی، بازی‌های ویدئویی و تیزرهای ورزشی',
+    sampleText: 'امروز روز پیروزی است؛ هیچ مانعی نمی‌تواند ما را متوقف کند.'
+  },
+  {
+    id: 'Zephyr',
+    name: 'Zephyr',
+    persianName: 'زفیر (زن - نرم و دلنشین)',
+    gender: 'زن',
+    character: 'نرم، مهربان و با احساس',
+    toneDescription: 'برای مدیتیشن، داستان رمانتیک، لالایی و محتوای آرامش‌بخش',
+    sampleText: 'چشمانت را ببند، نفسی عمیق بکش و به نوای آرامش گوش فراده.'
+  },
+  {
+    id: 'Aoede',
+    name: 'Aoede',
+    persianName: 'آئوده (زن - شاعرانه و دلنشین)',
+    gender: 'زن',
+    character: 'آهنگین، گرم و با احساس',
+    toneDescription: 'مناسب برای دکلمه شعر، متون ادبی و رمان‌های عاشقانه',
+    sampleText: 'در کنج دلم عشق تو خانه دارد، ای که نگاهت بوی بهار می‌دهد.'
+  },
+  {
+    id: 'Calliope',
+    name: 'Calliope',
+    persianName: 'کالیوپ (زن - شیوا و گوینده)',
+    gender: 'زن',
+    character: 'رسا، با نفوذ و رسمی',
+    toneDescription: 'عالی برای مستندها، معرفی محصولات و کنفرانس‌های تخصصی',
+    sampleText: 'با افتخار نسل جدید فناوری‌های صوتی هوشمند را به شما معرفی می‌کنیم.'
+  },
+  {
+    id: 'Leda',
+    name: 'Leda',
+    persianName: 'لدا (زن - شاداب و پرانرژی)',
+    gender: 'زن',
+    character: 'شفاف، دوستانه و جوان',
+    toneDescription: 'مناسب پادکست‌های شاد، آموزش به کودکان و تیزرهای خادمی',
+    sampleText: 'سلام به همه دوستان خوبم! امروز قراره با هم یک موضوع هیجان‌انگیز رو بررسی کنیم.'
+  },
+  {
+    id: 'Mimosa',
+    name: 'Mimosa',
+    persianName: 'میموزا (زن - شیرین و مهربان)',
+    gender: 'زن',
+    character: 'صمیمی، آرامش‌بخش و لطیف',
+    toneDescription: 'برای داستان کودکان، پیام‌های خوش‌آمدگویی و مشاوره',
+    sampleText: 'روزت پر از شادی و انرژی مثبت! همیشه لبخند بزن.'
+  },
+  {
+    id: 'Orpheus',
+    name: 'Orpheus',
+    persianName: 'اورفئوس (مرد - قصه‌گو و جذاب)',
+    gender: 'مرد',
+    character: 'عمیق، روایی و دلنشین',
+    toneDescription: 'مناسب روایت پادکست‌های تاریخی، داستان‌های صوتی و مستند',
+    sampleText: 'یکی بود یکی نبود، در روزگاران دور در میان کوه‌های سر به فلک کشیده...'
+  },
+  {
+    id: 'Perseus',
+    name: 'Perseus',
+    persianName: 'پرسیوس (مرد - قهرمانانه و مطمئن)',
+    gender: 'مرد',
+    character: 'باصلابت، شمرده و مطمئن',
+    toneDescription: 'مناسب سخنرانی‌های انگیزشی، همایش‌ها و تبلیغات تجاری',
+    sampleText: 'موفقیت اتفاقی نیست؛ نتیجه تلاش، پایداری و یادگیری مداوم است.'
+  },
+  {
+    id: 'Thalia',
+    name: 'Thalia',
+    persianName: 'تالیا (زن - پرنشاط و مثبت)',
+    gender: 'زن',
+    character: 'پرانرژی، لبخنددار و مثبت',
+    toneDescription: 'برای ویدیوهای اینستاگرام، تیک‌تاک و اعلان‌های اپلیکیشن',
+    sampleText: 'وای بچه ها باورمون نمیشد این پست اینقدر بازخورد مثبت بگیره!'
+  },
+  {
+    id: 'Urania',
+    name: 'Urania',
+    persianName: 'اورانیا (زن - علمی و گوینده)',
+    gender: 'زن',
+    character: 'واضح، شمرده و حرفه‌ای',
+    toneDescription: 'مناسب دوره‌های آموزشی آنلاین، اخبار علمی و کتاب‌های تخصصی',
+    sampleText: 'در این بخش به بررسی مکانیسم‌های یادگیری عمیق در شبکه‌های عصبی می‌پردازیم.'
+  },
+  {
+    id: 'Atlas',
+    name: 'Atlas',
+    persianName: 'اطلس (مرد - مستند و باابهت)',
+    gender: 'مرد',
+    character: 'طنین انداز، شمرده و باابهت',
+    toneDescription: 'ایده‌آل برای صدای آنونس فیلم، مستندهای طبیعت و تاریخ',
+    sampleText: 'سیاره زمین، گهواره حیات در پهنه بی‌کران کیهان...'
+  },
+  {
+    id: 'Echo',
+    name: 'Echo',
+    persianName: 'اکو (زن/مدرن - متوازن و شفاف)',
+    gender: 'زن',
+    character: 'شفاف، مدرن و روان',
+    toneDescription: 'مناسب دستیار صوتی، راهنمای تلفنی و دوره‌های الکترونیکی',
+    sampleText: 'درخواست شما با موفقیت ثبت شد. جهت ادامه کلید شماره یک را بفشارید.'
+  }
+];
+
+export const TONE_OPTIONS: { id: ToneType; title: string; description: string; icon: string }[] = [
+  { id: 'natural', title: 'طبیعی و عادی', description: 'لحن گفتاری روان و روزمره', icon: 'Sparkles' },
+  { id: 'energetic', title: 'پرانرژی و هیجانی', description: 'بیان با شور و نشاط بالا', icon: 'Zap' },
+  { id: 'calm', title: 'آرام و ملایم', description: 'صدا با ریتم کند و آرامش‌بخش', icon: 'Smile' },
+  { id: 'professional', title: 'رسمی و مجری‌گری', description: 'لحن گویندگی خبر و مستند', icon: 'Briefcase' },
+  { id: 'dramatic', title: 'دراماتیک و احساسی', description: 'بیان فراز و فرودهای حسی', icon: 'Flame' },
+  { id: 'storyteller', title: 'قصه‌گو و روایت‌گر', description: 'لحن جذاب داستان‌گویی', icon: 'BookOpen' },
+  { id: 'cheerful', title: 'شاد و دوستانه', description: 'صدا با لبخند و حس مثبت', icon: 'Heart' },
+  { id: 'serious', title: 'جدی و قاطع', description: 'لحن محکم و رسمی', icon: 'Shield' },
+  { id: 'whisper', title: 'نجوا و پچ‌پچ', description: 'صدای بسار نرم و رازآلود', icon: 'VolumeX' }
+];
+
+export const SPEED_PRESETS: { value: SpeedPreset; label: string; description: string }[] = [
+  { value: '0.5x', label: '۰.۵ برابر (خیلی کند)', description: 'مناسب آموزش زبان و متون سخت' },
+  { value: '0.75x', label: '۰.۷۵ برابر (کمی کند)', description: 'ریتم آرام برای درک بهتر' },
+  { value: '1.0x', label: '۱.۰ برابر (استاندارد)', description: 'سرعت طبیعی گفتگو' },
+  { value: '1.25x', label: '۱.۲۵ برابر (روان)', description: 'کمی سریعتر برای پادکست' },
+  { value: '1.5x', label: '۱.۵ برابر (تند)', description: 'سرعت بالا برای مرور سریع' },
+  { value: '2.0x', label: '۲.۰ برابر (خیلی تند)', description: 'بسیار سریع' }
+];
+
+export const SAMPLE_TEXTS = [
+  {
+    title: 'متن عمومی و خوش‌آمدگویی',
+    category: 'عمومی',
+    text: 'به استودیوی هوشمند تبدیل متن به گفتار خوش آمدید. شما می‌توانید هر متنی را وارد کرده و با بالاترین کیفیت به صدای طبیعی تبدیل کنید.'
+  },
+  {
+    title: 'شعر حافظ (احساسی و ادبی)',
+    category: 'ادبیات',
+    text: 'بنوشان جام صهبا را، که دور فلک در گذر است. به هوش باش که دنیا به جز خیالی بیش نیست.'
+  },
+  {
+    title: 'خبر فناوری (رسمی و گویندگی)',
+    category: 'اخبار',
+    text: 'بر اساس آخرین گزارش‌های انتشار یافته در دنیای فناوری، مدل‌های جدید هوش مصنوعی امکان تولید صدای کاملا طبیعی با احساسات انسانی را فراهم ساخته‌اند.'
+  },
+  {
+    title: 'متن تبلیغاتی (پرانرژی)',
+    category: 'تبلیغات',
+    text: 'تخفیف فوق‌العاده فصل شروع شد! فقط تا پایان این هفته فرصت دارید از پیشنهادهای شگفت‌انگیز ما بهره‌مند شوید.'
+  },
+  {
+    title: 'مکالمه دو نفره (گفتگوی چندصدایی)',
+    category: 'چند گوینده',
+    text: 'Joe: سلام جین، حالتون چطوره؟\nJane: سلام جو! ممنون، همه‌چیز عالیه. شما چطورید؟\nJoe: خوشحالم می‌شنوم. آماده‌اید پروژه جدید رو شروع کنیم؟'
+  },
+  {
+    title: 'متن انگلیسی (English Sample)',
+    category: 'انگلیسی',
+    text: 'Welcome to the AI Text to Speech Studio. Convert any written text into natural humanlike voice effortlessly using cutting-edge generative AI.'
+  }
+];

@@ -1,0 +1,6 @@
+{
+  "name": "Text to Speech Studio",
+  "description": "استودیو هوشمند تبدیل متن به گفتار طبیعی با استفاده از Gemini TTS، پشتیبانی از چندین فرمت صوتی، تنظیم سرعت و لحن گفتار",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
