@@ -69,6 +69,12 @@ function extractAudioFromResponse(response: any): { base64Data: string; mimeType
  * while passing stylistic hints into the prompt.
  */
 const BASE_VOICE_MAP: Record<string, { baseVoice: string; styleHint: string }> = {
+  // ElevenLabs Voice ID Match (mEf7WY0hvNO6KqdAkUeA) - Warm, rich, articulate male narrator
+  mEf7WY0hvNO6KqdAkUeA: {
+    baseVoice: 'Puck',
+    styleHint: 'ultra-realistic, natural ElevenLabs style voice (mEf7WY0hvNO6KqdAkUeA): warm, rich, articulate, smooth-spoken young male presenter ideal for YouTube science, psychology, and neuroscience videos'
+  },
+
   // Special YouTuber Character Voices (Young, warm male presenter for science & psychology)
   Puck_Neuro: { baseVoice: 'Puck', styleHint: 'young, modern, warm, friendly male voice explaining neuroscience, brain mechanics and dopamine for YouTube' },
   Nima_Sci: { baseVoice: 'Puck', styleHint: 'young, articulate, warm male podcast host explaining human behavior, cognitive psychology and mental growth' },
@@ -94,7 +100,17 @@ const BASE_VOICE_MAP: Record<string, { baseVoice: string; styleHint: string }> =
 };
 
 function getVoiceConfig(voiceInput: string): { baseVoice: string; styleHint: string } {
-  return BASE_VOICE_MAP[voiceInput] || { baseVoice: 'Kore', styleHint: '' };
+  if (BASE_VOICE_MAP[voiceInput]) {
+    return BASE_VOICE_MAP[voiceInput];
+  }
+  // If user passes a custom ElevenLabs voice ID string (like mEf7...)
+  if (voiceInput && (voiceInput.length > 15 || voiceInput.includes('mEf7') || voiceInput.includes('ElevenLabs'))) {
+    return {
+      baseVoice: 'Puck',
+      styleHint: `natural, warm ElevenLabs model voice (${voiceInput}): articulate young male presenter for YouTube science, psychology and neuroscience`
+    };
+  }
+  return { baseVoice: 'Puck', styleHint: 'warm, articulate, friendly voice for YouTube narration' };
 }
 
 /**

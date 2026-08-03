@@ -1,6 +1,19 @@
 import { VoiceOption, ToneType, SpeedPreset } from '../types';
 
 export const VOICE_OPTIONS: VoiceOption[] = [
+  // ElevenLabs Requested Voice ID Profile
+  {
+    id: 'mEf7WY0hvNO6KqdAkUeA',
+    name: 'آرش (ElevenLabs - mEf7WY0hvNO6KqdAkUeA)',
+    persianName: 'آرش (مدل ElevenLabs - mEf7WY0hvNO6KqdAkUeA)',
+    gender: 'مرد',
+    character: 'فوق‌العاده طبیعی، گرم، جذاب و صمیمی',
+    toneDescription: 'دقیقاً بر اساس شناسه صدای ElevenLabs mEf7WY0hvNO6KqdAkUeA برای روایت ویدیوهای یوتیوب، نوروساینس و روانشناسی',
+    sampleText: 'سلام رفقا! به ویدیوی جدید خوش اومدید. امروز می‌خوایم ببینیم مغز ما چطور تصمیم‌گیری می‌کنه و چطور می‌تونیم هورمون‌های تمرکزمون رو تنظیم کنیم.',
+    badge: 'ElevenLabs 🎙️',
+    isSpecialCharacter: true,
+  },
+
   // Special Character Voices for YouTube Science/Psychology/Neuroscience
   {
     id: 'Puck_Neuro',
