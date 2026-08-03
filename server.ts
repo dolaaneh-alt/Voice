@@ -9,6 +9,114 @@ const PORT = 3000;
 app.use(express.json({ limit: "20mb" }));
 
 /**
+ * Splits long text into natural paragraph/sentence chunks (max ~500 chars)
+ * to prevent TTS model volume decay over long narrations.
+ */
+function splitTextIntoChunks(text: string, maxChunkLength = 500): string[] {
+  const trimmed = text.trim();
+  if (trimmed.length <= maxChunkLength) {
+    return [trimmed];
+  }
+
+  const paragraphs = trimmed.split(/\n+/).map((p) => p.trim()).filter(Boolean);
+  const chunks: string[] = [];
+  let currentChunk = "";
+
+  for (const paragraph of paragraphs) {
+    if ((currentChunk ? currentChunk + "\n" + paragraph : paragraph).length <= maxChunkLength) {
+      currentChunk = currentChunk ? currentChunk + "\n" + paragraph : paragraph;
+    } else {
+      if (currentChunk) chunks.push(currentChunk);
+
+      if (paragraph.length > maxChunkLength) {
+        // Split long paragraph by sentence boundaries (. ! ? ؟)
+        const sentences = paragraph.match(/[^.!?؟\n]+[.!?؟\n]*/g) || [paragraph];
+        let subChunk = "";
+        for (const sentence of sentences) {
+          if ((subChunk ? subChunk + " " + sentence : sentence).length <= maxChunkLength) {
+            subChunk = subChunk ? subChunk + " " + sentence : sentence;
+          } else {
+            if (subChunk) chunks.push(subChunk.trim());
+            subChunk = sentence;
+          }
+        }
+        if (subChunk) currentChunk = subChunk.trim();
+        else currentChunk = "";
+      } else {
+        currentChunk = paragraph;
+      }
+    }
+  }
+  if (currentChunk) chunks.push(currentChunk.trim());
+
+  return chunks.length > 0 ? chunks : [trimmed];
+}
+
+/**
+ * Normalizes PCM audio buffer and applies Automatic Gain Control (AGC) across 1-second windows
+ * to prevent volume fading or decay in long recordings.
+ */
+function normalizeAndEqualizePcm(pcmBuffer: Buffer, sampleRate = 24000): Buffer {
+  const numSamples = Math.floor(pcmBuffer.length / 2);
+  if (numSamples === 0) return pcmBuffer;
+
+  const outBuffer = Buffer.alloc(pcmBuffer.length);
+  const frameSamples = sampleRate; // 1 second window
+  const totalFrames = Math.ceil(numSamples / frameSamples);
+
+  // Target peak amplitude (88% of max 16-bit range 32767 = 28834)
+  const targetVal = 28834;
+
+  const sampleGains = new Float32Array(numSamples);
+
+  for (let f = 0; f < totalFrames; f++) {
+    const startSample = f * frameSamples;
+    const endSample = Math.min(startSample + frameSamples, numSamples);
+    let peak = 0;
+    for (let i = startSample; i < endSample; i++) {
+      const val = Math.abs(pcmBuffer.readInt16LE(i * 2));
+      if (val > peak) peak = val;
+    }
+
+    // Determine gain for this frame
+    let frameGain = targetVal / Math.max(peak, 2500);
+    if (frameGain > 3.5) frameGain = 3.5; // Cap max boost
+    if (frameGain < 0.6) frameGain = 0.6; // Cap max attenuation
+
+    for (let i = startSample; i < endSample; i++) {
+      sampleGains[i] = frameGain;
+    }
+  }
+
+  // Smooth the gain curve using a 100ms moving average to eliminate sudden jumps
+  const smoothWindow = 2400; // ~100ms at 24kHz
+  const smoothedGains = new Float32Array(numSamples);
+  let runningSum = 0;
+
+  for (let i = 0; i < numSamples; i++) {
+    runningSum += sampleGains[i];
+    if (i >= smoothWindow) {
+      runningSum -= sampleGains[i - smoothWindow];
+      smoothedGains[i - Math.floor(smoothWindow / 2)] = runningSum / smoothWindow;
+    } else {
+      smoothedGains[i] = sampleGains[i];
+    }
+  }
+
+  // Apply smoothed gain and clamp sample bounds
+  for (let i = 0; i < numSamples; i++) {
+    const sample = pcmBuffer.readInt16LE(i * 2);
+    const gain = smoothedGains[i] || 1.0;
+    let scaled = Math.round(sample * gain);
+    if (scaled > 32767) scaled = 32767;
+    if (scaled < -32768) scaled = -32768;
+    outBuffer.writeInt16LE(scaled, i * 2);
+  }
+
+  return outBuffer;
+}
+
+/**
  * Converts raw 16-bit PCM audio buffer into a valid WAV audio buffer with RIFF header.
  */
 function pcmToWav(pcmBuffer: Buffer, sampleRate = 24000, numChannels = 1, bitsPerSample = 16): Buffer {
@@ -215,36 +323,23 @@ app.post("/api/tts/generate", async (req, res) => {
 
     const { baseVoice, styleHint } = getVoiceConfig(voice);
     let voiceStylePrompt = styleHint ? `Voice character style: ${styleHint}.` : "";
+    const volumeDirective = "CRITICAL AUDIO DIRECTION: Maintain a consistently strong, clear, steady, and energetic vocal volume and projection from start to finish. Do NOT decrease volume, drop energy, fade out, or whisper towards the end.";
 
-    let extraStyle = [voiceStylePrompt, customInstructions.trim()].filter(Boolean).join(" ");
+    let extraStyle = [voiceStylePrompt, volumeDirective, customInstructions.trim()].filter(Boolean).join(" ");
 
     if (!isMultiSpeaker) {
-      promptText = `Say in a ${toneDesc} ${speedDesc}. ${langNote} ${extraStyle}\n\nText: ${text.trim()}`;
+      // For long texts (> 500 chars), split into chunks to prevent TTS volume decay over time
+      const textChunks = splitTextIntoChunks(text, 500);
+      const pcmBuffers: Buffer[] = [];
+      const silencePadding = Buffer.alloc(24000 * 2 * 0.2); // 200ms silence between paragraph chunks
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3.1-flash-tts-preview",
-        contents: [{ parts: [{ text: promptText }] }],
-        config: {
-          responseModalities: [Modality.AUDIO],
-          speechConfig: {
-            voiceConfig: {
-              prebuiltVoiceConfig: { voiceName: baseVoice },
-            },
-          },
-        },
-      });
+      for (let idx = 0; idx < textChunks.length; idx++) {
+        const chunkText = textChunks[idx];
+        const chunkPrompt = `Say in a ${toneDesc} ${speedDesc}. ${langNote} ${extraStyle}\n\nText: ${chunkText}`;
 
-      // Extract audio data by searching all parts in candidates
-      let audioPart = extractAudioFromResponse(response);
-
-      // Fallback attempt if gemini-3.1-flash-tts-preview didn't return audio
-      if (!audioPart) {
-        console.warn("gemini-3.1-flash-tts-preview did not return audio part. Retrying with direct prompt...");
-        // Simplify prompt to direct text for TTS
-        const simplePrompt = `Say in a ${toneDesc}: ${text.trim()}`;
-        const retryResponse = await ai.models.generateContent({
+        let response = await ai.models.generateContent({
           model: "gemini-3.1-flash-tts-preview",
-          contents: [{ parts: [{ text: simplePrompt }] }],
+          contents: [{ parts: [{ text: chunkPrompt }] }],
           config: {
             responseModalities: [Modality.AUDIO],
             speechConfig: {
@@ -254,23 +349,51 @@ app.post("/api/tts/generate", async (req, res) => {
             },
           },
         });
-        audioPart = extractAudioFromResponse(retryResponse);
+
+        let audioPart = extractAudioFromResponse(response);
+
+        if (!audioPart) {
+          console.warn(`Chunk ${idx + 1}/${textChunks.length} retry with simple prompt...`);
+          const simplePrompt = `Say in a ${toneDesc}: ${chunkText}`;
+          const retryResponse = await ai.models.generateContent({
+            model: "gemini-3.1-flash-tts-preview",
+            contents: [{ parts: [{ text: simplePrompt }] }],
+            config: {
+              responseModalities: [Modality.AUDIO],
+              speechConfig: {
+                voiceConfig: {
+                  prebuiltVoiceConfig: { voiceName: baseVoice },
+                },
+              },
+            },
+          });
+          audioPart = extractAudioFromResponse(retryResponse);
+        }
+
+        if (audioPart) {
+          const rawChunkBuffer = Buffer.from(audioPart.base64Data, "base64");
+          pcmBuffers.push(rawChunkBuffer);
+          if (idx < textChunks.length - 1) {
+            pcmBuffers.push(silencePadding);
+          }
+        }
       }
 
-      if (!audioPart) {
-        // Collect any text parts returned for debugging
-        const textParts = response.candidates?.[0]?.content?.parts?.map((p: any) => p.text).filter(Boolean) || [];
-        const textMsg = textParts.length > 0 ? ` (مدل این متن را پاسخ داد: "${textParts.join(' ')}")` : '';
-        throw new Error(`هیچ داده صوتی از مدل دریافت نشد.${textMsg}`);
+      if (pcmBuffers.length === 0) {
+        throw new Error("هیچ داده صوتی از مدل دریافت نشد.");
       }
 
-      const rawBuffer = Buffer.from(audioPart.base64Data, "base64");
+      const combinedRawBuffer = Buffer.concat(pcmBuffers);
+
+      // Apply AGC and Level Normalization to maintain steady, uniform volume throughout
+      const normalizedBuffer = normalizeAndEqualizePcm(combinedRawBuffer, 24000);
+
       // Add 44-byte WAV header (24000Hz, Mono, 16-bit PCM)
-      const wavBuffer = pcmToWav(rawBuffer, 24000, 1, 16);
+      const wavBuffer = pcmToWav(normalizedBuffer, 24000, 1, 16);
       const base64Wav = wavBuffer.toString("base64");
 
       // Calculate approximate duration in seconds
-      const duration = (rawBuffer.length / (24000 * 2)).toFixed(2);
+      const duration = (normalizedBuffer.length / (24000 * 2)).toFixed(2);
 
       return res.json({
         success: true,
@@ -325,9 +448,10 @@ app.post("/api/tts/generate", async (req, res) => {
       }
 
       const rawBuffer = Buffer.from(multiAudioPart.base64Data, "base64");
-      const wavBuffer = pcmToWav(rawBuffer, 24000, 1, 16);
+      const normalizedBuffer = normalizeAndEqualizePcm(rawBuffer, 24000);
+      const wavBuffer = pcmToWav(normalizedBuffer, 24000, 1, 16);
       const base64Wav = wavBuffer.toString("base64");
-      const duration = (rawBuffer.length / (24000 * 2)).toFixed(2);
+      const duration = (normalizedBuffer.length / (24000 * 2)).toFixed(2);
 
       return res.json({
         success: true,
