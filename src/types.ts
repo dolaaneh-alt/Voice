@@ -23,6 +23,8 @@ export interface VoiceOption {
   character: string;
   toneDescription: string;
   sampleText: string;
+  badge?: string;
+  isSpecialCharacter?: boolean;
 }
 
 export interface SpeakerConfig {

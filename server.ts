@@ -69,6 +69,13 @@ function extractAudioFromResponse(response: any): { base64Data: string; mimeType
  * while passing stylistic hints into the prompt.
  */
 const BASE_VOICE_MAP: Record<string, { baseVoice: string; styleHint: string }> = {
+  // Special YouTuber Character Voices (Young, warm male presenter for science & psychology)
+  Puck_Neuro: { baseVoice: 'Puck', styleHint: 'young, modern, warm, friendly male voice explaining neuroscience, brain mechanics and dopamine for YouTube' },
+  Nima_Sci: { baseVoice: 'Puck', styleHint: 'young, articulate, warm male podcast host explaining human behavior, cognitive psychology and mental growth' },
+  Kian_Tech: { baseVoice: 'Puck', styleHint: 'confident, smart, energetic young male creator breaking down complex scientific & AI concepts' },
+  Pouya_Youtuber: { baseVoice: 'Puck', styleHint: 'captivating, curious, engaging young male storyteller describing psychology experiments and history of science' },
+
+  // Standard Voices
   Kore: { baseVoice: 'Kore', styleHint: 'calm, clear female voice' },
   Puck: { baseVoice: 'Puck', styleHint: 'friendly, energetic male voice' },
   Charon: { baseVoice: 'Charon', styleHint: 'deep, authoritative male voice' },

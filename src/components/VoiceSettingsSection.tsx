@@ -30,16 +30,44 @@ export const VoiceSettingsSection: React.FC<VoiceSettingsSectionProps> = ({
   setCustomInstructions,
   isMultiSpeaker,
 }) => {
-  const [genderFilter, setGenderFilter] = React.useState<'all' | 'زن' | 'مرد'>('all');
+  const [genderFilter, setGenderFilter] = React.useState<'all' | 'character' | 'زن' | 'مرد'>('all');
 
   const filteredVoices = VOICE_OPTIONS.filter((v) => {
     if (genderFilter === 'all') return true;
+    if (genderFilter === 'character') return v.isSpecialCharacter;
     return v.gender === genderFilter;
   });
 
   return (
     <div id="voice-settings-section" className="bg-slate-900/80 rounded-2xl border border-slate-800 p-5 shadow-xl space-y-6">
       
+      {/* Character Special Highlight Banner */}
+      <div className="bg-gradient-to-r from-emerald-950/80 via-slate-900 to-indigo-950/70 border border-emerald-500/30 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center shrink-0 text-xl shadow-inner">
+            💚
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-emerald-300 flex items-center gap-1.5">
+              مجموعه صداهای ویژه کاراکتر یوتیوب شما
+            </h3>
+            <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">
+              صداهای گرم، جذاب و صمیمی برای ویدیوهای علمی، روانشناسی، علوم شناختی و نوروساینس
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setGenderFilter('character');
+            setSelectedVoice('Puck_Neuro');
+          }}
+          className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-all shadow-md shadow-emerald-600/20 shrink-0 self-end sm:self-center"
+        >
+          انتخاب صدای کاراکتر (آرش نوروساینس)
+        </button>
+      </div>
+
       {/* Title */}
       <div className="flex items-center gap-2 pb-3 border-b border-slate-800">
         <SlidersHorizontal className="w-5 h-5 text-indigo-400" />
@@ -55,8 +83,8 @@ export const VoiceSettingsSection: React.FC<VoiceSettingsSectionProps> = ({
               انتخاب گوینده ({VOICE_OPTIONS.length} گوینده متنوع):
             </label>
 
-            {/* Gender Filter Buttons */}
-            <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+            {/* Filter Buttons */}
+            <div className="flex flex-wrap items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
               <button
                 type="button"
                 onClick={() => setGenderFilter('all')}
@@ -70,6 +98,17 @@ export const VoiceSettingsSection: React.FC<VoiceSettingsSectionProps> = ({
               </button>
               <button
                 type="button"
+                onClick={() => setGenderFilter('character')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
+                  genderFilter === 'character'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-emerald-400 hover:text-emerald-300'
+                }`}
+              >
+                💚 کاراکتر شما ({VOICE_OPTIONS.filter(v => v.isSpecialCharacter).length})
+              </button>
+              <button
+                type="button"
                 onClick={() => setGenderFilter('زن')}
                 className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
                   genderFilter === 'زن'
@@ -77,7 +116,7 @@ export const VoiceSettingsSection: React.FC<VoiceSettingsSectionProps> = ({
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                گویندگان زن ({VOICE_OPTIONS.filter(v => v.gender === 'زن').length})
+                زن ({VOICE_OPTIONS.filter(v => v.gender === 'زن').length})
               </button>
               <button
                 type="button"
@@ -88,12 +127,12 @@ export const VoiceSettingsSection: React.FC<VoiceSettingsSectionProps> = ({
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                گویندگان مرد ({VOICE_OPTIONS.filter(v => v.gender === 'مرد').length})
+                مرد ({VOICE_OPTIONS.filter(v => v.gender === 'مرد').length})
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
             {filteredVoices.map((v) => {
               const isSelected = selectedVoice === v.id;
               return (
@@ -101,23 +140,38 @@ export const VoiceSettingsSection: React.FC<VoiceSettingsSectionProps> = ({
                   key={v.id}
                   type="button"
                   onClick={() => setSelectedVoice(v.id)}
-                  className={`p-3 rounded-xl text-right transition-all flex flex-col justify-between border ${
-                    isSelected
-                      ? 'bg-indigo-600/15 border-indigo-500 text-white shadow-md shadow-indigo-500/10 ring-1 ring-indigo-500'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-950'
+                  className={`p-3.5 rounded-xl text-right transition-all flex flex-col justify-between border ${
+                    v.isSpecialCharacter
+                      ? isSelected
+                        ? 'bg-emerald-950/40 border-emerald-500 text-white ring-2 ring-emerald-500 shadow-lg shadow-emerald-500/10'
+                        : 'bg-slate-950/80 border-emerald-500/40 text-slate-200 hover:border-emerald-500 hover:bg-slate-900'
+                      : isSelected
+                        ? 'bg-indigo-600/15 border-indigo-500 text-white shadow-md shadow-indigo-500/10 ring-1 ring-indigo-500'
+                        : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-950'
                   }`}
                 >
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-bold text-sm text-slate-100">{v.name}</span>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
-                        v.gender === 'زن' ? 'bg-pink-500/15 text-pink-300 border border-pink-500/20' : 'bg-blue-500/15 text-blue-300 border border-blue-500/20'
-                      }`}>
-                        {v.gender}
+                      <span className="font-bold text-sm text-slate-100 flex items-center gap-1">
+                        {v.name}
+                        {v.isSpecialCharacter && <span className="text-xs">💚</span>}
                       </span>
+                      {v.badge ? (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                          {v.badge}
+                        </span>
+                      ) : (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
+                          v.gender === 'زن' ? 'bg-pink-500/15 text-pink-300 border border-pink-500/20' : 'bg-blue-500/15 text-blue-300 border border-blue-500/20'
+                        }`}>
+                          {v.gender}
+                        </span>
+                      )}
                     </div>
-                    <p className="text-xs font-medium text-indigo-300 mb-1">{v.character}</p>
-                    <p className="text-[11px] text-slate-400 leading-tight line-clamp-2">{v.toneDescription}</p>
+                    <p className={`text-xs font-medium mb-1 ${v.isSpecialCharacter ? 'text-emerald-300' : 'text-indigo-300'}`}>
+                      {v.character}
+                    </p>
+                    <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-2">{v.toneDescription}</p>
                   </div>
                 </button>
               );
